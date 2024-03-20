@@ -24,44 +24,35 @@
 
     <form action="item.html" th:action th:object="${item}" method="post">
 
-        <!--
-            Safe Navigation Operator
-                errors?. 은 errors 가 null 일때 NullPointerException 이 발생하는 대신, null 을 반환하는 문법이다.
-                th:if 에서 null 은 실패로 처리되므로 오류 메시지가 출력되지 않는다.
-                이것은 스프링의 SpringEL이 제공하는 문법이다.
-        -->
-        <div th:if="${errors?.containsKey('globalError')}">
-            <p class="field-error" th:text="${errors['globalError']}">전체 오류 메시지</p>
+        <!-- #fields : #fields 로 BindingResult 가 제공하는 검증 오류에 접근할 수 있다. -->
+        <div th:if="${#fields.hasGlobalErrors()}">
+            <p class="field-error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">전체 오류 메시지</p>
         </div>
 
         <div>
             <label for="itemName" th:text="#{label.item.itemName}">상품명</label>
-            <input type="text" id="itemName" th:field="*{itemName}"
-                   th:class="${errors?.containsKey('itemName')} ? 'form-control field-error' : 'form-control'"
-                   class="form-control" placeholder="이름을 입력하세요">
-            <div class="field-error" th:if="${errors?.containsKey('itemName')}" th:text="${errors['itemName']}">
+            <input type="text" id="itemName" th:field="*{itemName}" th:errorclass="field-error" class="form-control" placeholder="이름을 입력하세요">
+            <div class="field-error" th:errors="*{itemName}">
                 상품명 오류
             </div>
+            <!--
+                th:errors : 해당 필드에 오류가 있는 경우에 태그를 출력한다. th:if 의 편의 버전이다.
+                th:errorclass : th:field 에서 지정한 필드에 오류가 있으면 class 정보를 추가한다.
+                검증과 오류 메시지 공식 메뉴얼 : https://www.thymeleaf.org/doc/tutorials/3.0/thymeleafspring.html#validation-and-errormessages
+            -->
         </div>
         <div>
             <label for="price" th:text="#{label.item.price}">가격</label>
-            <input type="text" id="price" th:field="*{price}"
-                   th:class="${errors?.containsKey('price')} ? 'form-control field-error' : 'form-control'"
-                   class="form-control" placeholder="가격을 입력하세요">
-            <div class="field-error" th:if="${errors?.containsKey('price')}" th:text="${errors['price']}">
-                상품명 오류
+            <input type="text" id="price" th:field="*{price}" th:errorclass="field-error" class="form-control" placeholder="가격을 입력하세요">
+            <div class="field-error" th:errors="*{price}">
+                가격 오류
             </div>
         </div>
         <div>
             <label for="quantity" th:text="#{label.item.quantity}">수량</label>
-            <!--<input type="text" id="quantity" th:field="*{quantity}"
-                   th:class="${errors?.containsKey('quantity')} ? 'form-control field-error' : 'form-control'"
-                   class="form-control" placeholder="수량을 입력하세요">-->
-            <input type="text" id="quantity" th:field="*{quantity}"
-                   th:classappend="${errors?.containsKey('itemName')} ? 'fielderror' : _"
-                   class="form-control" placeholder="수량을 입력하세요"> <!-- 위의 코드 개선, 만약 값이 없으면 _(No-Operation)을 사용 -->
-            <div class="field-error" th:if="${errors?.containsKey('quantity')}" th:text="${errors['quantity']}">
-                상품명 오류
+            <input type="text" id="quantity" th:field="*{quantity}" th:errorclass="field-error" class="form-control" placeholder="수량을 입력하세요">
+            <div class="field-error" th:errors="*{quantity}">
+                수량 오류
             </div>
         </div>
 
