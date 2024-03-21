@@ -200,7 +200,7 @@ public class ValidationItemControllerV2 {
      *     <li>arguments : Object[]{1000, 1000000} 를 사용해서 코드의 {0} , {1} 로 치환할 값을 전달한다.</li>
      * </ul>
      */
-    @PostMapping("/add")
+//    @PostMapping("/add")
     public String addItemV3(@ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
 
         //검증 로직
@@ -219,6 +219,59 @@ public class ValidationItemControllerV2 {
             int resultPrice = item.getPrice() * item.getQuantity();
             if(resultPrice < 10000) {
                 bindingResult.addError(new ObjectError("item", new String[]{"totalPriceMin"}, new Object[]{10000, resultPrice}, null));
+            }
+        }
+
+        //검증에 실패하면 다시 입력 폼으로
+        if(bindingResult.hasErrors()) {
+            log.info("errors = {} ", bindingResult);
+            return "validation/v2/addForm";
+        }
+
+        //성공 로직
+        Item savedItem = itemRepository.save(item);
+        redirectAttributes.addAttribute("itemId", savedItem.getId());
+        redirectAttributes.addAttribute("status", true);
+        return "redirect:/validation/v2/items/{itemId}";
+    }
+
+    /**
+     * <h2>rejectValue() , reject()</h2>
+     * BindingResult 가 제공하는 rejectValue() , reject() 를 사용하면 FieldError , ObjectError 를 직접
+     * 생성하지 않고, 깔끔하게 검증 오류를 다룰 수 있다.
+     * <ul>-rejectValue()
+     *     <li>{@code void rejectValue(@Nullable String field, String errorCode,@Nullable Object[] errorArgs, @Nullable String defaultMessage);}</li>
+     *     <li>field : 오류 필드명</li>
+     *     <li>errorCode : 오류 코드(이 오류 코드는 메시지에 등록된 코드가 아니다. messageResolver를
+     *                     위한 오류 코드이다.)</li>
+     *     <li>errorArgs : 오류 메시지에서 {0} 을 치환하기 위한 값</li>
+     *     <li>defaultMessage : 오류 메시지를 찾을 수 없을 때 사용하는 기본 메시지</li>
+     * </ul>
+     */
+    @PostMapping("/add")
+    public String addItemV4(@ModelAttribute Item item, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+
+        //BindingResult 는 검증해야 할 객체인 target 바로 다음에 온다. 따라서 BindingResult 는 이미 본인이 검증해야 할 객체인 target 을 알고 있다.
+        log.info("objectName={}", bindingResult.getObjectName());
+        log.info("target={}", bindingResult.getTarget());
+
+        //검증 로직
+        if(!StringUtils.hasText(item.getItemName())) {
+            //앞에서 BindingResult 는 어떤 객체를 대상으로 검증하는지 target을 이미 알고 있다고 했다. 따라서 target(item)에 대한 정보는 없어도 된다.
+            bindingResult.rejectValue("itemName","required");
+        }
+        if(item.getPrice() == null || item.getPrice() < 1000 || item.getPrice() > 1000000) {
+            bindingResult.rejectValue("price", "range", new Object[]{1000,1000000}, null);
+        }
+        if(item.getQuantity() == null || item.getQuantity() > 9999) {
+            bindingResult.rejectValue("quantity", "max", new Object[]{9999}, null);
+        }
+
+        //특정 필드의 범위를 넘어서는 복합 룰 검증 로직
+        if(item.getPrice() != null && item.getQuantity() != null) {
+            int resultPrice = item.getPrice() * item.getQuantity();
+            if(resultPrice < 10000) {
+                bindingResult.reject("totalPriceMin", new Object[]{10000, resultPrice}, null);
             }
         }
 
