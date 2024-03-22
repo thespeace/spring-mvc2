@@ -13,17 +13,18 @@ import org.hibernate.validator.constraints.ScriptAssert;
 //자바 코드로 작성 권장!
 public class Item {
 
+    @NotNull(groups = UpdateCheck.class) //수정 요구사항 추가
     private Long id;
 
-    @NotBlank(message = "공백X") // 빈값 + 공백만 있는 경우를 허용하지 않는다.
+    @NotBlank(message = "공백X", groups = {SaveCheck.class, UpdateCheck.class}) // 빈값 + 공백만 있는 경우를 허용하지 않는다.
     private String itemName;
 
-    @NotNull //`null`을 허용하지 않는다.
-    @Range(min = 1000, max = 1000000) //범위 안의 값이어야 한다.
+    @NotNull(groups = {SaveCheck.class, UpdateCheck.class}) //`null`을 허용하지 않는다.
+    @Range(min = 1000, max = 1000000, groups = {SaveCheck.class, UpdateCheck.class}) //범위 안의 값이어야 한다.
     private Integer price;
 
-    @NotNull
-    @Max(9999) //최대 9999까지만 허용.
+    @NotNull(groups = {SaveCheck.class, UpdateCheck.class})
+    @Max(value = 9999, groups = SaveCheck.class) //최대 9999까지만 허용, 수정 요구사항은 무제한.
     private Integer quantity;
 
     public Item() {
