@@ -5,8 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range; //org.hibernate.validator은 하이버네이트 validator 구현체를 사용할 때만 제공되는 검증 기능, 실무에서도 하이버네이트 validator를 사용하므로 자유롭게 사용해도 된다.
+import org.hibernate.validator.constraints.ScriptAssert;
 
 @Data
+//@ScriptAssert(lang = "javascript", script = "_this.price * _this.quantity >= 10000", message = "총합이 10000원 넘게 입력해주세요.")
+//ObjectError 처리 수행, 하지만 제약이 많고 복잡하여 실무 검증 기능이 해당 객체의 범위를 넘어서는 경우들도 종종 등장하는데, 그런 경우 즉각 대응이 어렵다.
+//자바 코드로 작성 권장!
 public class Item {
 
     private Long id;
