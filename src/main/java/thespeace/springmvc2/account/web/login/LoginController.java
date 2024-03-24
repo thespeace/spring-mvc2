@@ -25,6 +25,24 @@ public class LoginController {
         return "account/login/loginForm";
     }
 
+    /**
+     * <h2>로그인(쿠키 사용)</h2>
+     * 쿠키를 사용해서 로그인ID를 전달해서 로그인을 유지할 수 있다.<br>
+     * 그런데 여기에는 심각한 보안 문제가 있다.
+     * <ul>
+     *     <li>쿠키 값은 임의로 변경할 수 있다.(클라이언트가 개발자모드로 변경가능)</li>
+     *     <li>쿠키에 보관된 정보는 훔쳐갈 수 있다.</li>
+     *     <li>해커가 쿠키를 한번 훔쳐가면 평생 사용할 수 있다.</li>
+     * </ul>
+     *
+     * <ul>-대안
+     *     <li>쿠키에 중요한 값을 노출하지 않고, 사용자 별로 예측 불가능한 임의의 랜덤 값(토큰)을 노출하고, 서버에서
+     *         토큰과 사용자 id를 매핑해서 인식한다. 그리고 서버에서 토큰을 관리한다.</li>
+     *     <li>토큰은 해커가 임의의 값을 넣어도 찾을 수 없도록 예상 불가능 해야 한다.</li>
+     *     <li>해커가 토큰을 털어가도 시간이 지나면 사용할 수 없도록 서버에서 해당 토큰의 만료시간을 짧게(예: 30분)
+     *         유지한다. 또는 해킹이 의심되는 경우 서버에서 해당 토큰을 강제로 제거하면 된다.</li>
+     * </ul>
+     */
     @PostMapping("/login")
     public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
         if(bindingResult.hasErrors()) {
@@ -48,7 +66,7 @@ public class LoginController {
     }
 
     /**
-     * <h2>로그아웃</h2>
+     * <h2>로그아웃(쿠키 사용)</h2>
      * <ul>
      *     <li>세션 쿠키이므로 웹 브라우저 종료시</li>
      *     <li>서버에서 해당 쿠키의 종료 날짜를 0으로 지정</li>
