@@ -1,6 +1,7 @@
 package thespeace.springmvc2.account.web;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -42,7 +43,7 @@ public class HomeController {
         return "/account/login/loginHome";
     }
 
-    @GetMapping
+//    @GetMapping
     public String homeLoginV2(HttpServletRequest request, Model model) {
 
         //세션 관리자에 저장된 회원 정보 조회
@@ -54,6 +55,26 @@ public class HomeController {
         }
 
         model.addAttribute("member", member);
+        return "/account/login/loginHome";
+    }
+
+    @GetMapping
+    public String homeLoginV3(HttpServletRequest request, Model model) {
+
+        HttpSession session = request.getSession(false); //세션을 메모리를 사용하기때문에 꼭 필요할때만 사용.
+        if(session == null) {
+            return "/account/home";
+        }
+
+        Member loginMember = (Member)session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        //세션에 회원 데이터가 없으면 home
+        if(loginMember == null) {
+            return "/account/home";
+        }
+
+        //세션이 유지되면 로그인으로 이동
+        model.addAttribute("member", loginMember);
         return "/account/login/loginHome";
     }
 }
