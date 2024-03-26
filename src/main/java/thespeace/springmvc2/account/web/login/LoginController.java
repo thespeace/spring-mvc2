@@ -1,6 +1,7 @@
 package thespeace.springmvc2.account.web.login;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import thespeace.springmvc2.account.domain.login.LoginService;
 import thespeace.springmvc2.account.domain.member.Member;
+import thespeace.springmvc2.account.web.session.SessionManager;
 
 @Slf4j
 @Controller
@@ -19,6 +21,7 @@ import thespeace.springmvc2.account.domain.member.Member;
 public class LoginController {
 
     private final LoginService loginService;
+    private final SessionManager sessionManager;
 
     @GetMapping("/login")
     public String loginForm(@ModelAttribute("loginForm") LoginForm form) {
@@ -43,7 +46,7 @@ public class LoginController {
      *         유지한다. 또는 해킹이 의심되는 경우 서버에서 해당 토큰을 강제로 제거하면 된다.</li>
      * </ul>
      */
-    @PostMapping("/login")
+//    @PostMapping("/login")
     public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
         if(bindingResult.hasErrors()) {
             return "account/login/loginForm";
@@ -66,6 +69,30 @@ public class LoginController {
     }
 
     /**
+     * <h2>로그인(직접 만든 세션 적용)</h2>
+     */
+    @PostMapping("/login")
+    public String loginV2(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response) {
+        if(bindingResult.hasErrors()) {
+            return "account/login/loginForm";
+        }
+
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+
+        if(loginMember == null) {
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+            return "account/login/loginForm";
+        }
+
+        //로그인 성공 처리
+
+        //세션 관리자를 통해 세션을 생성하고, 회원 데이터 보관
+        sessionManager.createSession(loginMember, response);
+
+        return "redirect:/account";
+    }
+
+    /**
      * <h2>로그아웃(쿠키 사용)</h2>
      * <ul>
      *     <li>세션 쿠키이므로 웹 브라우저 종료시</li>
@@ -73,9 +100,18 @@ public class LoginController {
      * </ul>
      * 로그아웃도 응답 쿠키를 생성하는데 `Max-Age=0` 를 확인할 수 있다. 해당 쿠키는 즉시 종료된다.
      */
-    @PostMapping("/logout")
+//    @PostMapping("/logout")
     public String logout(HttpServletResponse response) {
         expireCookie(response, "memberId");
+        return "redirect:/account";
+    }
+
+    /**
+     * <h2>로그아웃(직접 만든 세션 적용)</h2>
+     */
+    @PostMapping("/logout")
+    public String logoutV2(HttpServletRequest request) {
+        sessionManager.expire(request);
         return "redirect:/account";
     }
 
