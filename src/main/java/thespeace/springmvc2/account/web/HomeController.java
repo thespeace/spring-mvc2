@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import thespeace.springmvc2.account.domain.member.Member;
 import thespeace.springmvc2.account.domain.member.MemberRepository;
+import thespeace.springmvc2.account.web.argumentresolver.Login;
 import thespeace.springmvc2.account.web.session.SessionManager;
 
 @Slf4j
@@ -83,9 +84,27 @@ public class HomeController {
      * <h2>@SessionAttribute</h2>
      * 이미 로그인 된 사용자를 찾을 때 사용된다. 참고로 이 기능은 세션을 생성하지 않는다.
      */
-    @GetMapping
+    //@GetMapping
     public String homeLoginV3Spring(
             @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member loginMember, Model model) {
+
+        //세션에 회원 데이터가 없으면 home
+        if(loginMember == null) {
+            return "/account/home";
+        }
+
+        //세션이 유지되면 로그인으로 이동
+        model.addAttribute("member", loginMember);
+        return "/account/login/loginHome";
+    }
+
+    /**
+     * <h2>ArgumentResolver 활용</h2>
+     * 실행해보면, 결과는 동일하지만, 더 편리하게 로그인 회원 정보를 조회할 수 있다.<br>
+     * 이렇게 ArgumentResolver 를 활용하면 공통 작업이 필요할 때 컨트롤러를 더욱 편리하게 사용할 수 있다.
+     */
+    @GetMapping
+    public String homeLoginV3ArgumentResolver(@Login Member loginMember, Model model) {
 
         //세션에 회원 데이터가 없으면 home
         if(loginMember == null) {

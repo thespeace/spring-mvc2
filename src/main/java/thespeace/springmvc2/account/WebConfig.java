@@ -4,15 +4,28 @@ import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import thespeace.springmvc2.account.web.argumentresolver.LoginMemberArgumentResolver;
 import thespeace.springmvc2.account.web.filter.LogFilter;
 import thespeace.springmvc2.account.web.filter.LoginCheckFilter;
 import thespeace.springmvc2.account.web.interceptor.LogInterceptor;
 import thespeace.springmvc2.account.web.interceptor.LoginCheckInterceptor;
 
+import java.util.List;
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+
+    /**
+     * <h2>ArgumentResolvers 등록</h2>
+     */
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new LoginMemberArgumentResolver());
+    }
 
     /**
      * <h2>인터셉터 등록</h2>
