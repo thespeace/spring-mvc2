@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import thespeace.springmvc2.account.domain.login.LoginService;
 import thespeace.springmvc2.account.domain.member.Member;
 import thespeace.springmvc2.account.web.SessionConst;
@@ -100,7 +101,7 @@ public class LoginController {
      * 서블릿을 통해 HttpSession 을 생성하면 다음과 같은 쿠키를 생성한다.<br>
      * 쿠키 이름은 `JSESSIONID` 이고, 값은 추정 불가능한 랜덤 값이다.
      */
-    @PostMapping("/login")
+    //@PostMapping("/login")
     public String loginV3(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request) {
         if(bindingResult.hasErrors()) {
             return "account/login/loginForm";
@@ -123,6 +124,35 @@ public class LoginController {
         session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
 
         return "redirect:/account";
+    }
+
+    /**
+     * <h2>RedirectURL 처리</h2>
+     * 로그인에 성공하면 처음 요청한 URL로 이동하는 기능 추가.
+     */
+    @PostMapping("/login")
+    public String loginV4(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
+                          @RequestParam(defaultValue = "/") String redirectURL,
+                          HttpServletRequest request) {
+        if(bindingResult.hasErrors()) {
+            return "account/login/loginForm";
+        }
+
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
+
+        if(loginMember == null) {
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+            return "account/login/loginForm";
+        }
+
+        //로그인 성공 처리, //세션이 있으면 있는 세션 반환, 없으면 신규 세션 생성
+        HttpSession session = request.getSession();
+
+        //세션에 로그인 회원 정보 보관(메모리 저장)
+        session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+
+        //redirectURL 적용
+        return "redirect:" + redirectURL;
     }
 
     /**
