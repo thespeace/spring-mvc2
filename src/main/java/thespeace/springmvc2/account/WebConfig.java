@@ -9,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import thespeace.springmvc2.account.web.filter.LogFilter;
 import thespeace.springmvc2.account.web.filter.LoginCheckFilter;
 import thespeace.springmvc2.account.web.interceptor.LogInterceptor;
+import thespeace.springmvc2.account.web.interceptor.LoginCheckInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -19,8 +20,11 @@ public class WebConfig implements WebMvcConfigurer {
      * <ul>-스프링의 URL 경로
      *     <li>스프링이 제공하는 URL 경로는 서블릿 기술이 제공하는 URL 경로와 완전히 다르다. 더욱 자세하고, 세밀하게 설정할 수 있다.</li>
      * </ul>
-     *
+     * 순서 주의, 세밀한 설정 가능!
      * @see <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/util/pattern/PathPattern.html">PathPattern 공식 문서</a>
+     * @reference : 서블릿 필터와 스프링 인터셉터는 웹과 관련된 공통 관심사를 해결하기 위한 기술이다.
+     *              서블릿 필터와 비교해서 스프링 인터셉터가 개발자 입장에서 훨씬 편리하다는 것을 코드로 이해했을 것이다.<br>
+     *              특별한 문제가 없다면 인터셉터를 사용하는 것이 좋다.
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -29,6 +33,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**") //인터셉터를 적용할 URL 패턴을 지정한다.
                 .excludePathPatterns("/css/**", "/*.ico", "/error"); //인터셉터에서 제외할 패턴을 지정한다.
         //필터와 비교해보면 인터셉터는 addPathPatterns , excludePathPatterns 로 매우 정밀하게 URL 패턴을 지정 할 수 있다.
+
+        registry.addInterceptor(new LoginCheckInterceptor())
+                .order(2)
+                .addPathPatterns("/**") //인터셉터를 적용.
+                .excludePathPatterns("/","/account", "/members/add", "/login", "/logout",
+                        "/css/**", "/*.ico", "/error"); //인터셉터를 적용 X.
     }
 
     /**
@@ -60,7 +70,7 @@ public class WebConfig implements WebMvcConfigurer {
         return filterRegistrationBean;
     }
 
-    @Bean
+    //@Bean
     public FilterRegistrationBean loginCheckFilter() {
         FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(new LoginCheckFilter()); //로그인 필터를 등록한다.
