@@ -4,32 +4,53 @@ import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import thespeace.springmvc2.account.web.filter.LogFilter;
 import thespeace.springmvc2.account.web.filter.LoginCheckFilter;
+import thespeace.springmvc2.account.web.interceptor.LogInterceptor;
 
-/**
- * <h2>필터 설정</h2>
- * 필터를 등록하는 방법은 여러가지가 있지만, 스프링 부트를 사용한다면 FilterRegistrationBean 을 사용해서
- * 등록하면 된다.
- * <ul>
- *     <li>setFilter(new LogFilter()) : 등록할 필터를 지정한다.</li>
- *     <li>setOrder(1) : 필터는 체인으로 동작한다. 따라서 순서가 필요하다. 낮을 수록 먼저 동작한다.</li>
- *     <li>addUrlPatterns("/*") : 필터를 적용할 URL 패턴을 지정한다. 한번에 여러 패턴을 지정할 수 있다.</li>
- * </ul>
- *
- * @reference : URL 패턴에 대한 룰은 필터도 서블릿과 동일하다. 자세한 내용은 서블릿 URL 패턴으로 검색해보자. <br>
- *              {@code @ServletComponentScan} @WebFilter(filterName = "logFilter", urlPatterns = "/*")로
- *              필터 등록이 가능하지만 필터 순서 조절이 안된다. 따라서 FilterRegistrationBean 을 사용하자.
- * @reference : 실무에서 HTTP 요청시 같은 요청의 로그에 모두 같은 식별자를 자동으로 남기는 방법은 logback mdc로 검색해보자.
- * @reference : 필터에는 스프링 인터셉터는 제공하지 않는, 아주 강력한 기능이 있는데 chain.doFilter(request, response); 를
- *              호출해서 다음 필터 또는 서블릿을 호출할 때 request ,response 를 다른 객체로 바꿀 수 있다. ServletRequest ,
- *              ServletResponse 를 구현한 다른 객체를 만들어서 넘기면 해당 객체가 다음 필터 또는 서블릿에서 사용된다.
- *              잘 사용하는 기능은 아니니 참고만 해두자.
- */
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
 
-    @Bean
+    /**
+     * <h2>인터셉터 등록</h2>
+     * WebMvcConfigurer 가 제공하는 addInterceptors() 를 사용해서 인터셉터를 등록할 수 있다.
+     * <ul>-스프링의 URL 경로
+     *     <li>스프링이 제공하는 URL 경로는 서블릿 기술이 제공하는 URL 경로와 완전히 다르다. 더욱 자세하고, 세밀하게 설정할 수 있다.</li>
+     * </ul>
+     *
+     * @see <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/util/pattern/PathPattern.html">PathPattern 공식 문서</a>
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LogInterceptor()) //인터셉터를 등록.
+                .order(1) //인터셉터의 호출 순서를 지정한다. 낮을 수록 먼저 호출.
+                .addPathPatterns("/**") //인터셉터를 적용할 URL 패턴을 지정한다.
+                .excludePathPatterns("/css/**", "/*.ico", "/error"); //인터셉터에서 제외할 패턴을 지정한다.
+        //필터와 비교해보면 인터셉터는 addPathPatterns , excludePathPatterns 로 매우 정밀하게 URL 패턴을 지정 할 수 있다.
+    }
+
+    /**
+     * <h2>필터 설정</h2>
+     * 필터를 등록하는 방법은 여러가지가 있지만, 스프링 부트를 사용한다면 FilterRegistrationBean 을 사용해서
+     * 등록하면 된다.
+     * <ul>
+     *     <li>setFilter(new LogFilter()) : 등록할 필터를 지정한다.</li>
+     *     <li>setOrder(1) : 필터는 체인으로 동작한다. 따라서 순서가 필요하다. 낮을 수록 먼저 동작한다.</li>
+     *     <li>addUrlPatterns("/*") : 필터를 적용할 URL 패턴을 지정한다. 한번에 여러 패턴을 지정할 수 있다.</li>
+     * </ul>
+     *
+     * @reference : URL 패턴에 대한 룰은 필터도 서블릿과 동일하다. 자세한 내용은 서블릿 URL 패턴으로 검색해보자. <br>
+     *              {@code @ServletComponentScan} @WebFilter(filterName = "logFilter", urlPatterns = "/*")로
+     *              필터 등록이 가능하지만 필터 순서 조절이 안된다. 따라서 FilterRegistrationBean 을 사용하자.
+     * @reference : 실무에서 HTTP 요청시 같은 요청의 로그에 모두 같은 식별자를 자동으로 남기는 방법은 logback mdc로 검색해보자.
+     * @reference : 필터에는 스프링 인터셉터는 제공하지 않는, 아주 강력한 기능이 있는데 chain.doFilter(request, response); 를
+     *              호출해서 다음 필터 또는 서블릿을 호출할 때 request ,response 를 다른 객체로 바꿀 수 있다. ServletRequest ,
+     *              ServletResponse 를 구현한 다른 객체를 만들어서 넘기면 해당 객체가 다음 필터 또는 서블릿에서 사용된다.
+     *              잘 사용하는 기능은 아니니 참고만 해두자.
+     */
+    //@Bean
     public FilterRegistrationBean logFilter() {
         FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(new LogFilter());
