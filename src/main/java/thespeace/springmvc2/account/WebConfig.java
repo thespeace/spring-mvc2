@@ -51,7 +51,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .order(2)
                 .addPathPatterns("/**") //인터셉터를 적용.
                 .excludePathPatterns("/","/account", "/members/add", "/login", "/logout",
-                        "/css/**", "/*.ico", "/error/**"); //인터셉터를 적용 X.
+                        "/css/**", "/*.ico", "/error/**", "/error-page/**"); //인터셉터를 적용 X.
     }
 
     /**
