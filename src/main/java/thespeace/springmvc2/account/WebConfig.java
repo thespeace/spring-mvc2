@@ -1,5 +1,6 @@
 package thespeace.springmvc2.account;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,7 @@ import thespeace.springmvc2.account.web.filter.LogFilter;
 import thespeace.springmvc2.account.web.filter.LoginCheckFilter;
 import thespeace.springmvc2.account.web.interceptor.LogInterceptor;
 import thespeace.springmvc2.account.web.interceptor.LoginCheckInterceptor;
+import thespeace.springmvc2.exception.filter.LogExFilter;
 
 import java.util.List;
 
@@ -43,13 +45,13 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LogInterceptor()) //인터셉터를 등록.
                 .order(1) //인터셉터의 호출 순서를 지정한다. 낮을 수록 먼저 호출.
-                .addPathPatterns("/**") //인터셉터를 적용할 URL 패턴을 지정한다.
-                .excludePathPatterns("/css/**", "/*.ico", "/error"); //인터셉터에서 제외할 패턴을 지정한다.
+                .addPathPatterns("/account/**","/items/**","/members/**", "login", "/logout") //인터셉터를 적용할 URL 패턴을 지정한다.
+                .excludePathPatterns("/css/**", "/*.ico", "/error/**", "/error-page/**"); //인터셉터에서 제외할 패턴을 지정한다.
         //필터와 비교해보면 인터셉터는 addPathPatterns , excludePathPatterns 로 매우 정밀하게 URL 패턴을 지정 할 수 있다.
 
         registry.addInterceptor(new LoginCheckInterceptor())
                 .order(2)
-                .addPathPatterns("/**") //인터셉터를 적용.
+                .addPathPatterns("/items/**") //인터셉터를 적용.
                 .excludePathPatterns("/","/account", "/members/add", "/login", "/logout",
                         "/css/**", "/*.ico", "/error/**", "/error-page/**"); //인터셉터를 적용 X.
     }
@@ -89,6 +91,27 @@ public class WebConfig implements WebMvcConfigurer {
         filterRegistrationBean.setFilter(new LoginCheckFilter()); //로그인 필터를 등록한다.
         filterRegistrationBean.setOrder(2); //순서를 2번으로 잡았다. 로그 필터 다음에 로그인 필터가 적용된다.
         filterRegistrationBean.addUrlPatterns("/*"); //모든 요청에 로그인 필터를 적용한다.
+
+        return filterRegistrationBean;
+    }
+
+    /**
+     * <h2>필터와 DispatcherType</h2>
+     * <ul>{@code filterRegistrationBean.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);}
+     *     <li>이렇게 두 가지를 모두 넣으면 클라이언트 요청은 물론이고, 오류 페이지 요청에서도 필터가 호출된다.</li>
+     *     <li>아무것도 넣지 않으면 기본 값이 DispatcherType.REQUEST 이다. 즉 클라이언트의 요청이 있는 경우에만 필터가 적용된다.
+     *         특별히 오류 페이지 경로도 필터를 적용할 것이 아니면, 기본 값을 그대로 사용하면 된다. </li>
+     *     <li>물론 오류 페이지 요청 전용 필터를 적용하고 싶으면 DispatcherType.ERROR 만 지정하면 된다.</li>
+     * </ul>
+     * @see <a href="http://localhost:8080/error/error-ex">test url</a>
+     */
+    @Bean
+    public FilterRegistrationBean logExFilter() {
+        FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
+        filterRegistrationBean.setFilter(new LogExFilter());
+        filterRegistrationBean.setOrder(1);
+        filterRegistrationBean.addUrlPatterns("/error/*","/error-page/*");
+        filterRegistrationBean.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);
 
         return filterRegistrationBean;
     }
