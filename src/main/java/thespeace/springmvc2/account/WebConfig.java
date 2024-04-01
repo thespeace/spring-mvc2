@@ -14,6 +14,7 @@ import thespeace.springmvc2.account.web.filter.LoginCheckFilter;
 import thespeace.springmvc2.account.web.interceptor.LogInterceptor;
 import thespeace.springmvc2.account.web.interceptor.LoginCheckInterceptor;
 import thespeace.springmvc2.exception.filter.LogExFilter;
+import thespeace.springmvc2.exception.interceptor.LogExInterceptor;
 
 import java.util.List;
 
@@ -54,6 +55,27 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/items/**") //인터셉터를 적용.
                 .excludePathPatterns("/","/account", "/members/add", "/login", "/logout",
                         "/css/**", "/*.ico", "/error/**", "/error-page/**"); //인터셉터를 적용 X.
+
+        /**
+         * -서블릿 예외 처리 - 인터셉터 중복 호출 제거
+         *  인터셉터는 서블릿이 제공하는 기능이 아니라 스프링이 제공하는 기능이다. 따라서 DispatcherType 과 무관하게 항상 호출된다.
+         *  대신에 인터셉터는 다음과 같이 요청 경로에 따라서 추가하거나 제외하기 쉽게 되어 있기 때문에, 이러한 설정을 사용해서
+         *  오류 페이지 경로를 excludePathPatterns 를 사용해서 빼주면 된다.
+         *
+         * -전체 흐름 정리
+         *      /error-ex 오류 요청
+         *          필터는 DispatchType 으로 중복 호출 제거 ( dispatchType=REQUEST )
+         *          인터셉터는 경로 정보로 중복 호출 제거( excludePathPatterns("/error-page/**") )
+         *
+         *      1. WAS(/error-ex, dispatchType=REQUEST) -> 필터 -> 서블릿 -> 인터셉터 -> 컨트롤러
+         *      2. WAS(여기까지 전파) <- 필터 <- 서블릿 <- 인터셉터 <- 컨트롤러(예외발생)
+         *      3. WAS 오류 페이지 확인
+         *      4. WAS(/error-page/500, dispatchType=ERROR) -> 필터(x) -> 서블릿 -> 인터셉터(x) -> 컨트롤러(/error-page/500) -> View
+         */
+        registry.addInterceptor(new LogExInterceptor())
+                .order(3)
+                .addPathPatterns("/error/*")
+                .excludePathPatterns("/css/**", "/*.ico", "/error","/error-page/**"); //오류 페이지 경로
     }
 
     /**
@@ -105,7 +127,7 @@ public class WebConfig implements WebMvcConfigurer {
      * </ul>
      * @see <a href="http://localhost:8080/error/error-ex">test url</a>
      */
-    @Bean
+    //@Bean
     public FilterRegistrationBean logExFilter() {
         FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(new LogExFilter());
