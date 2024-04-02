@@ -3,9 +3,12 @@ package thespeace.springmvc2.exception.api;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import thespeace.springmvc2.exception.exception.BadRequestException;
 import thespeace.springmvc2.exception.exception.UserException;
 
 @Slf4j
@@ -33,6 +36,27 @@ public class ApiExceptionController {
         return new MemberDto(id, "hello " + id);
     }
 
+    /**
+     * <h2>ResponseStatusExceptionResolver - @ResponseStatus 사용</h2>
+     * @see <a href="http://localhost:8080/api/response-status-ex1">postman test url</a>
+     */
+    @GetMapping("/api/response-status-ex1")
+    public String responseStatusEx1() {
+        throw new BadRequestException();
+    }
+
+    /**
+     * <h2>ResponseStatusExceptionResolver - ResponseStatusException 사용</h2>
+     * {@code @ResponseStatus}는 개발자가 직접 변경할 수 없는 예외에는 적용할 수 없다.
+     * (애노테이션을 직접 넣어야 하는데, 내가 코드를 수정할 수 없는 라이브러리의 예외 코드 같은 곳에는 적용할 수 없다.)<br>
+     * 추가로 애노테이션을 사용하기 때문에 조건에 따라 동적으로 변경하는 것도 어렵다.<br>
+     * 이때는 ResponseStatusException 예외를 사용하면 된다.
+     * @see <a href="http://localhost:8080/api/response-status-ex2">postman test url</a>
+     */
+    @GetMapping("/api/response-status-ex2")
+    public String responseStatusEx2() {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "error.bad2", new IllegalArgumentException());
+    }
 
     @Data
     @AllArgsConstructor
