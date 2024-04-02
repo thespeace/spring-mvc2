@@ -6,6 +6,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import thespeace.springmvc2.account.web.argumentresolver.LoginMemberArgumentResolver;
@@ -15,6 +16,7 @@ import thespeace.springmvc2.account.web.interceptor.LogInterceptor;
 import thespeace.springmvc2.account.web.interceptor.LoginCheckInterceptor;
 import thespeace.springmvc2.exception.filter.LogExFilter;
 import thespeace.springmvc2.exception.interceptor.LogExInterceptor;
+import thespeace.springmvc2.exception.resolver.MyHandlerExceptionResolver;
 
 import java.util.List;
 
@@ -136,5 +138,16 @@ public class WebConfig implements WebMvcConfigurer {
         filterRegistrationBean.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);
 
         return filterRegistrationBean;
+    }
+
+    /**
+     * <h2>WebMvcConfigurer 를 통해 HandlerExceptionResolver 등록</h2>
+     * 기본 설정을 유지하면서 추가<br>
+     * {@code configureHandlerExceptionResolvers(..)}를 사용하면 스프링이 기본으로 등록하는
+     * {@code ExceptionResolver}가 제거되므로 주의, {@code extendHandlerExceptionResolvers}를 사용하자.
+     */
+    @Override
+    public void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+        resolvers.add(new MyHandlerExceptionResolver());
     }
 }

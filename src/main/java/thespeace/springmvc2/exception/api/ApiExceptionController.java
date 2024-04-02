@@ -22,6 +22,9 @@ public class ApiExceptionController {
 
             throw new RuntimeException("잘못된 사용자");
         }
+        if(id.equals("bad")) { //http://localhost:8080/api/members/bad 호출시 IllegalArgumentException 발생, 상태코드 500 반환. HandlerExceptionResolver로 동작 방식을 변경해보자.
+            throw  new IllegalArgumentException("잘못된 입력 값");
+        }
 
         return new MemberDto(id, "hello " + id);
     }
