@@ -17,6 +17,7 @@ import thespeace.springmvc2.account.web.interceptor.LoginCheckInterceptor;
 import thespeace.springmvc2.exception.filter.LogExFilter;
 import thespeace.springmvc2.exception.interceptor.LogExInterceptor;
 import thespeace.springmvc2.exception.resolver.MyHandlerExceptionResolver;
+import thespeace.springmvc2.exception.resolver.UserHandlerExceptionResolver;
 
 import java.util.List;
 
@@ -149,5 +150,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
         resolvers.add(new MyHandlerExceptionResolver());
+        resolvers.add(new UserHandlerExceptionResolver());
     }
 }
