@@ -44,7 +44,7 @@ import thespeace.springmvc2.exception.exhandler.ErrorResult;
  * @see <a href="https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-anncontroller-advice">스프링 공식 문서(대상 컨트롤러 지정 방법)</a>
  */
 @Slf4j
-@RestControllerAdvice()
+//@RestControllerAdvice()
 public class ExControllerAdvice {
 
 
