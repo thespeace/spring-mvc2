@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import thespeace.springmvc2.typeconverter.type.IpPort;
 
 /**
  * <h1>스프링 타입 컨버터 소개</h1>
@@ -87,6 +88,12 @@ public class ConverterController {
      *     //data를 Integer 타입으로 받을 수 있는 것도 스프링이 타입 변환을 해주기 때문이다.
      * </pre></blockquote>
      *
+     * <h2>ConversionService에 직접 만든 Converter 등록</h2>
+     * 테스트 URL을 실행해보면 StringToIntegerConverter가 작동하는 로그를 확인 할 수 있다.<br>
+     * 그런데 StringToIntegerConverter를 등록하기 전에도 이 코드는 잘 수행되었다. 그것은 스프링이
+     * 내부에서 수 많은 기본 컨버터들을 제공하기 때문이다. 컨버터를 추가하면 추가한 컨버터가 기본 컨버터보다
+     * 높은 우선 순위를 가진다.
+     *
      * @see <a href="http://localhost:8080/converter/intro/v2?data=10">test url</a>
      */
     @GetMapping("/v2")
@@ -95,5 +102,24 @@ public class ConverterController {
         return "ok";
     }
 
+    /**
+     * <h2>문자 -> IpPort 객체 Converter 적용</h2>
+     * 테스트 URL을 실행해보면 ?ipPort=127.0.0.1:8080 쿼리 스트링이 @RequestParam IpPort ipPort에서
+     * 객체 타입으로 잘 변환 된 것을 확인할 수 있다.<p>
+     * 
+     * <h2>처리 과정</h2>
+     * {@code @RequestParam}은 @RequestParam 을 처리하는 ArgumentResolver 인
+     * RequestParamMethodArgumentResolver 에서 ConversionService 를 사용해서 타입을 변환한다.
+     * 부모 클래스와 다양한 외부 클래스를 호출하는 등 복잡한 내부 과정을 거치기 때문에 대략 이렇게 처리되는
+     * 것으로 이해해도 충분하다. 만약 더 깊이있게 확인하고 싶으면 IpPortConverter 에 디버그 브레이크 포인트를 걸어서 확인해보자.
+     *
+     * @see <a href="http://localhost:8080/converter/intro/ip-port?ipPort=127.0.0.1:8080">test url</a>
+     */
+    @GetMapping("/ip-port")
+    public String ipPort(@RequestParam IpPort ipPort) {
+        System.out.println("ipPort IP = " + ipPort.getIp());
+        System.out.println("ipPort PORT= " + ipPort.getPort());
+        return "ok";
+    }
 
 }
