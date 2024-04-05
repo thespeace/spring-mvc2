@@ -1,4 +1,4 @@
-package thespeace.springmvc2.converter;
+package thespeace.springmvc2.typeconverter.converter;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
